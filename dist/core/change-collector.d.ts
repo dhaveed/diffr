@@ -5,4 +5,3 @@ export declare function collectChanges(githubClient: GitHubClient, repository: R
 export declare function resolveBaseRef(githubClient: GitHubClient, logger: Logger): Promise<string | null>;
 export declare function filterChanges(entries: ChangeEntry[], filters: FilterConfig, logger: Logger): ChangeEntry[];
 export declare function isBot(author: string): boolean;
-//# sourceMappingURL=change-collector.d.ts.map

@@ -32,4 +32,3 @@ export declare class ConfigValidationError extends Error {
     constructor(message: string, field: string);
 }
 export declare function validateYamlConfig(config: unknown): YamlConfig;
-//# sourceMappingURL=schema.d.ts.map

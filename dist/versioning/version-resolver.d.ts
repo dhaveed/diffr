@@ -8,4 +8,3 @@ export interface ResolveVersionOptions {
 export declare function resolveVersion(options: ResolveVersionOptions): VersionInfo;
 export declare function stripPrefix(tag: string, prefix: string): string;
 export declare function incrementVersion(version: string, bump: BumpType): string;
-//# sourceMappingURL=version-resolver.d.ts.map

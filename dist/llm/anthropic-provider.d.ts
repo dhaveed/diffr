@@ -7,4 +7,3 @@ export declare class AnthropicProvider implements LLMProvider {
     constructor(config: LLMConfig, logger: Logger);
     generateReleaseNotes(context: ReleaseContext): Promise<string>;
 }
-//# sourceMappingURL=anthropic-provider.d.ts.map

@@ -10,4 +10,3 @@ export interface PublishContext {
     dryRun: boolean;
 }
 export declare function publishRelease(context: PublishContext, githubClient: GitHubClient, logger: Logger): Promise<ReleaseResult | null>;
-//# sourceMappingURL=release-publisher.d.ts.map

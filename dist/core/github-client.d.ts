@@ -51,4 +51,3 @@ export declare class GitHubClient {
     tagExists(tag: string): Promise<boolean>;
     createRelease(options: PublishOptions): Promise<ReleaseData>;
 }
-//# sourceMappingURL=github-client.d.ts.map

@@ -11,4 +11,3 @@ export declare class Logger {
     private format;
     private redactMeta;
 }
-//# sourceMappingURL=logger.d.ts.map

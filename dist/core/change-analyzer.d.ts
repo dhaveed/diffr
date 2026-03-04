@@ -9,4 +9,3 @@ export declare function parseConventionalCommit(message: string): ConventionalCo
 export declare function analyzeChanges(entries: ChangeEntry[]): ChangeEntry[];
 export declare function generateImpactSummary(entries: ChangeEntry[]): ImpactSummary;
 export declare function buildReleaseContext(entries: ChangeEntry[], repository: RepositoryInfo, previousVersion: string | null, versionInfo: VersionInfo): ReleaseContext;
-//# sourceMappingURL=change-analyzer.d.ts.map

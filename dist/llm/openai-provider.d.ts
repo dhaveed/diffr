@@ -7,4 +7,3 @@ export declare class OpenAIProvider implements LLMProvider {
     constructor(config: LLMConfig, logger: Logger);
     generateReleaseNotes(context: ReleaseContext): Promise<string>;
 }
-//# sourceMappingURL=openai-provider.d.ts.map

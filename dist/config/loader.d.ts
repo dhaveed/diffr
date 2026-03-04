@@ -14,4 +14,3 @@ export interface ActionInputs {
 export declare function loadConfig(inputs: ActionInputs, logger?: Logger): Promise<DiffrConfig>;
 export declare function loadYamlConfig(path: string, logger?: Logger): Promise<YamlConfig | null>;
 export declare function mergeConfig(inputs: ActionInputs, yaml: YamlConfig | null): DiffrConfig;
-//# sourceMappingURL=loader.d.ts.map
