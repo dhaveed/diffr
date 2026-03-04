@@ -43,6 +43,44 @@ jobs:
 
 > **Note:** `fetch-depth: 0` is required so diffr can compare commits across tags.
 
+## Usage
+
+### As a GitHub Action
+
+Run on every push to `main`:
+
+```yaml
+- uses: dhaveed/diffr@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+Preview only (no release published):
+
+```yaml
+- uses: dhaveed/diffr@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    dry-run: 'true'
+```
+
+### Local Development
+
+Requirements:
+
+- Node.js `>=20`
+- `pnpm`
+
+Install and run:
+
+```bash
+pnpm install
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm build
+```
+
 ## Inputs
 
 | Input            | Description                             | Required | Default                                     |
