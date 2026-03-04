@@ -1,0 +1,56 @@
+{
+  "name": "diffr",
+  "version": "0.1.0",
+  "description": "AI-powered GitHub Release Generator",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "ncc build src/action/index.ts -o dist --source-map --license licenses.txt",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/ tests/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "github",
+    "release",
+    "release-notes",
+    "ai",
+    "llm",
+    "github-action"
+  ],
+  "author": "David Adegoke",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@octokit/rest": "^21.1.0",
+    "openai": "^4.82.0",
+    "semver": "^7.7.1",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/semver": "^7.5.8",
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "@vercel/ncc": "^0.38.3",
+    "@vitest/coverage-v8": "^3.0.0",
+    "eslint": "^9.20.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

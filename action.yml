@@ -1,0 +1,54 @@
+name: 'diffr'
+description: 'AI-powered GitHub Release Generator — automatically generates structured release notes from commits and PRs'
+author: 'David Adegoke'
+
+branding:
+  icon: 'tag'
+  color: 'blue'
+
+inputs:
+  github-token:
+    description: 'GitHub token for API access'
+    required: true
+    default: ${{ github.token }}
+  llm-provider:
+    description: 'LLM provider to use (openai or anthropic)'
+    required: false
+    default: 'openai'
+  llm-api-key:
+    description: 'API key for the LLM provider'
+    required: false
+  llm-model:
+    description: 'Model to use for release note generation'
+    required: false
+  version:
+    description: 'Explicit version to use (overrides auto-detection)'
+    required: false
+  version-prefix:
+    description: 'Version tag prefix (e.g., "v")'
+    required: false
+    default: 'v'
+  dry-run:
+    description: 'Preview release without publishing'
+    required: false
+    default: 'false'
+  config-path:
+    description: 'Path to .diffr.yml config file'
+    required: false
+    default: '.diffr.yml'
+
+outputs:
+  version:
+    description: 'The resolved version number'
+  tag:
+    description: 'The created git tag'
+  release-url:
+    description: 'URL of the created GitHub Release'
+  release-notes:
+    description: 'The generated release notes markdown'
+  dry-run:
+    description: 'Whether this was a dry run'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

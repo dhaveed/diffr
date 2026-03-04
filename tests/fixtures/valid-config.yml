@@ -1,0 +1,27 @@
+llm:
+  provider: anthropic
+  model: claude-haiku-4-5
+  max-input-tokens: 8000
+  temperature: 0.3
+
+versioning:
+  prefix: "v"
+  initial-version: "1.0.0"
+
+notes:
+  tone: product
+  style: concise
+  include-authors: false
+  include-compare-link: true
+
+filters:
+  exclude-labels:
+    - "no-release"
+    - "internal"
+  exclude-authors:
+    - "bot-user"
+  skip-bots: true
+
+release:
+  draft: true
+  prerelease: false

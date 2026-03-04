@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# Test & Coverage
+coverage/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+._*
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# TypeScript
+*.tsbuildinfo
+*.d.ts.map
+
+# Temp
+tmp/
+
+# Docs (generated)
+docs/
+
+# Claude
+.claude/
