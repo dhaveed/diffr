@@ -53566,20 +53566,19 @@ class GitHubClient {
 /** Strip HTML tags from text, preserving readable content. */
 function stripHtml(text) {
     return (text
-        // 1. Decode entities first so encoded tags like &lt;script&gt; become real tags
-        .replace(/&#39;/g, "'")
-        .replace(/&quot;/g, '"')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        // 2. Convert block-level and line-break tags to newlines
+        // Drop script/style blocks entirely instead of preserving their text content.
+        .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+        // Convert block-level and line-break tags to newlines before removing markup.
         .replace(/<br\s*\/?>/gi, '\n')
         .replace(/<\/?(p|div|li|h[1-6]|tr|blockquote)[^>]*>/gi, '\n')
-        // 3. Strip all remaining tags (including any that were previously encoded)
+        // Remove markup without decoding tag-shaped entities into real angle brackets.
         .replace(/<[^>]+>/g, '')
-        // 4. Decode &amp; last to avoid double-unescaping
+        // Decode only text-safe entities after tags are stripped.
         .replace(/&amp;/g, '&')
-        // 5. Final safety pass — catch any tags that survived entity decoding
-        .replace(/<[^>]*>/g, '')
+        .replace(/&(quot|#34);/gi, '"')
+        .replace(/&(apos|#39);/gi, "'")
+        .replace(/&(nbsp|#160);/gi, ' ')
         .replace(/\n{3,}/g, '\n\n')
         .trim());
 }

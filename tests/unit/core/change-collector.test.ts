@@ -201,6 +201,27 @@ describe('collectChanges', () => {
     expect(body).not.toContain('<script>');
   });
 
+  it('drops raw text blocks even with spaced closing tags', async () => {
+    const client = createMockGitHubClient({
+      listPullRequestsForCommit: vi.fn().mockResolvedValue([
+        {
+          ...MOCK_PRS[0],
+          body: '<script type="text/javascript">alert(1)</script ><p>safe</p><style>body{display:none}</style >',
+        },
+      ]),
+    });
+
+    const result = await collectChanges(
+      client as never,
+      MOCK_REPO,
+      'HEAD',
+      { ...defaultFilters, skipBots: false },
+      logger,
+    );
+
+    expect(result.entries[0]?.pullRequest?.body).toBe('safe');
+  });
+
   it('decodes only safe text entities after stripping markup', async () => {
     const client = createMockGitHubClient({
       listPullRequestsForCommit: vi.fn().mockResolvedValue([

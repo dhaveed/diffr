@@ -2,26 +2,93 @@ import type { GitHubClient } from './github-client.js';
 import type { ChangeEntry, ChangeSet, CommitInfo, FilterConfig, PullRequestInfo, RepositoryInfo } from '../types.js';
 import type { Logger } from '../utils/logger.js';
 
+const BLOCK_TAGS = new Set(['blockquote', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'p', 'tr']);
+const RAW_TEXT_TAGS = new Set(['script', 'style']);
+
+function decodeSafeHtmlEntities(text: string): string {
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&(quot|#34);/gi, '"')
+    .replace(/&(apos|#39);/gi, "'")
+    .replace(/&(nbsp|#160);/gi, ' ');
+}
+
+function extractTagName(tagContent: string): string {
+  let i = 0;
+  while (i < tagContent.length && /\s/.test(tagContent[i] ?? '')) i += 1;
+  if (tagContent[i] === '/') i += 1;
+  while (i < tagContent.length && /\s/.test(tagContent[i] ?? '')) i += 1;
+
+  let name = '';
+  while (i < tagContent.length) {
+    const char = tagContent[i] ?? '';
+    const lowerChar = char.toLowerCase();
+    if ((lowerChar >= 'a' && lowerChar <= 'z') || (char >= '0' && char <= '9')) {
+      name += lowerChar;
+      i += 1;
+      continue;
+    }
+    break;
+  }
+
+  return name;
+}
+
+function isClosingTag(tagContent: string): boolean {
+  let i = 0;
+  while (i < tagContent.length && /\s/.test(tagContent[i] ?? '')) i += 1;
+  return tagContent[i] === '/';
+}
+
 /** Strip HTML tags from text, preserving readable content. */
 function stripHtml(text: string): string {
-  return (
-    text
-      // Drop script/style blocks entirely instead of preserving their text content.
-      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
-      // Convert block-level and line-break tags to newlines before removing markup.
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/?(p|div|li|h[1-6]|tr|blockquote)[^>]*>/gi, '\n')
-      // Remove markup without decoding tag-shaped entities into real angle brackets.
-      .replace(/<[^>]+>/g, '')
-      // Decode only text-safe entities after tags are stripped.
-      .replace(/&amp;/g, '&')
-      .replace(/&(quot|#34);/gi, '"')
-      .replace(/&(apos|#39);/gi, "'")
-      .replace(/&(nbsp|#160);/gi, ' ')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim()
-  );
+  let result = '';
+  let i = 0;
+  let rawTextTag: string | null = null;
+
+  while (i < text.length) {
+    const char = text[i] ?? '';
+
+    if (char !== '<') {
+      if (!rawTextTag) result += char;
+      i += 1;
+      continue;
+    }
+
+    const tagEnd = text.indexOf('>', i + 1);
+    if (tagEnd === -1) {
+      if (!rawTextTag) result += text.slice(i);
+      break;
+    }
+
+    const tagContent = text.slice(i + 1, tagEnd);
+    const tagName = extractTagName(tagContent);
+    const closingTag = isClosingTag(tagContent);
+
+    if (rawTextTag) {
+      if (closingTag && tagName === rawTextTag) {
+        rawTextTag = null;
+      }
+      i = tagEnd + 1;
+      continue;
+    }
+
+    if (RAW_TEXT_TAGS.has(tagName) && !closingTag) {
+      rawTextTag = tagName;
+      i = tagEnd + 1;
+      continue;
+    }
+
+    if (tagName === 'br' || BLOCK_TAGS.has(tagName)) {
+      result += '\n';
+    }
+
+    i = tagEnd + 1;
+  }
+
+  return decodeSafeHtmlEntities(result)
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 const BOT_SUFFIXES = ['[bot]'];
