@@ -13,7 +13,6 @@ describe('generateFallbackNotes', () => {
     expect(notes).toContain('#42');
     expect(notes).toContain('#43');
     expect(notes).toContain('@janedoe');
-    expect(notes).toContain('[Compare changes]');
   });
 
   it('handles empty entries', () => {
@@ -29,9 +28,9 @@ describe('generateFallbackNotes', () => {
     expect(notes).toContain('### Changes');
   });
 
-  it('omits compare link when no previous version', () => {
+  it('does not include compare link (handled by orchestrator)', () => {
     const analyzed = analyzeChanges(MOCK_CHANGE_ENTRIES);
-    const notes = generateFallbackNotes(analyzed, MOCK_REPO, null, 'v1.0.0');
+    const notes = generateFallbackNotes(analyzed, MOCK_REPO, 'v1.0.0', 'v1.1.0');
     expect(notes).not.toContain('[Compare changes]');
   });
 

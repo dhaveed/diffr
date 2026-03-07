@@ -80,9 +80,9 @@ function buildConfig(overrides?: Partial<DiffrConfig>): DiffrConfig {
 
 const CREATED_RELEASE = {
   id: 2,
-  tag_name: 'v1.0.1',
-  html_url: 'https://github.com/test-owner/test-repo/releases/tag/v1.0.1',
-  name: 'v1.0.1',
+  tag_name: 'v2.0.0',
+  html_url: 'https://github.com/test-owner/test-repo/releases/tag/v2.0.0',
+  name: 'v2.0.0',
   body: 'notes',
   draft: false,
   prerelease: false,
@@ -118,9 +118,9 @@ describe('Integration: Full Pipeline', () => {
 
     expect(result.success).toBe(true);
     expect(result.skipped).toBe(false);
-    expect(result.version).toBe('1.0.1');
-    expect(result.tag).toBe('v1.0.1');
-    expect(result.releaseNotes).toContain("What's New in v1.0.1");
+    expect(result.version).toBe('2.0.0');
+    expect(result.tag).toBe('v2.0.0');
+    expect(result.releaseNotes).toContain("What's New in v2.0.0");
     expect(result.releaseNotes).toContain('Features');
     expect(result.releaseNotes).toContain('[Compare changes]');
     expect(result.release?.url).toBeDefined();
@@ -199,9 +199,9 @@ describe('Integration: Full Pipeline', () => {
     mockOctokit.repos.getReleaseByTag.mockResolvedValue({
       data: {
         id: 1,
-        tag_name: 'v1.0.1',
-        html_url: 'https://github.com/test-owner/test-repo/releases/tag/v1.0.1',
-        name: 'v1.0.1',
+        tag_name: 'v2.0.0',
+        html_url: 'https://github.com/test-owner/test-repo/releases/tag/v2.0.0',
+        name: 'v2.0.0',
         body: 'existing notes',
         draft: false,
         prerelease: false,

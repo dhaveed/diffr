@@ -87,7 +87,8 @@ export class GitHubClient {
         }),
       );
       return data.length > 0 ? data[0].name : null;
-    } catch {
+    } catch (error) {
+      this.logger.debug(`Failed to fetch latest tag: ${error instanceof Error ? error.message : String(error)}`);
       return null;
     }
   }
@@ -135,7 +136,8 @@ export class GitHubClient {
           merged_at: pr.merged_at ?? null,
           html_url: pr.html_url,
         }));
-    } catch {
+    } catch (error) {
+      this.logger.debug(`Failed to fetch PRs for commit ${sha}: ${error instanceof Error ? error.message : String(error)}`);
       return [];
     }
   }
@@ -166,7 +168,8 @@ export class GitHubClient {
         }),
       );
       return true;
-    } catch {
+    } catch (error) {
+      this.logger.debug(`Tag check failed for ${tag}: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     }
   }

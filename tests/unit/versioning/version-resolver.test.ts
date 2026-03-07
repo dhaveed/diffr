@@ -74,6 +74,28 @@ describe('resolveVersion', () => {
     expect(result.isInitial).toBe(false);
   });
 
+  it('uses bumpHint for minor bump', () => {
+    const result = resolveVersion({
+      lastTag: 'v1.0.0',
+      prefix: 'v',
+      initialVersion: '0.1.0',
+      bumpHint: 'minor',
+    });
+    expect(result.version).toBe('1.1.0');
+    expect(result.bump).toBe('minor');
+  });
+
+  it('uses bumpHint for major bump', () => {
+    const result = resolveVersion({
+      lastTag: 'v1.2.3',
+      prefix: 'v',
+      initialVersion: '0.1.0',
+      bumpHint: 'major',
+    });
+    expect(result.version).toBe('2.0.0');
+    expect(result.bump).toBe('major');
+  });
+
   it('handles tags with custom prefix', () => {
     const result = resolveVersion({
       lastTag: 'release-1.0.0',
