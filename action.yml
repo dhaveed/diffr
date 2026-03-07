@@ -1,4 +1,4 @@
-name: 'diffr'
+name: 'diffr-release'
 description: 'AI-powered GitHub Release Generator — automatically generates structured release notes from commits and PRs'
 author: 'David Adegoke'
 
