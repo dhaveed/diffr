@@ -23,6 +23,12 @@
   ],
   "author": "David Adegoke",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhaveed/diffr.git"
+  },
+  "homepage": "https://github.com/dhaveed/diffr#readme",
+  "bugs": "https://github.com/dhaveed/diffr/issues",
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
