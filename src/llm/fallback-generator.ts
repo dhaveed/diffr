@@ -1,4 +1,4 @@
-import type { ChangeEntry, RepositoryInfo } from '../types.js';
+import type { ChangeEntry } from '../types.js';
 
 const TYPE_LABELS: Record<string, string> = {
   feat: 'Features',
@@ -15,9 +15,9 @@ const TYPE_LABELS: Record<string, string> = {
 
 export function generateFallbackNotes(
   entries: ChangeEntry[],
-  repository: RepositoryInfo,
-  previousVersion: string | null,
-  newVersion: string,
+  _repository?: unknown,
+  _previousVersion?: unknown,
+  _newVersion?: unknown,
 ): string {
   if (entries.length === 0) return 'No changes in this release.';
 
@@ -33,11 +33,6 @@ export function generateFallbackNotes(
     sections.push('');
   }
 
-  if (previousVersion) {
-    const compareUrl = `https://github.com/${repository.owner}/${repository.repo}/compare/${previousVersion}...${newVersion}`;
-    sections.push(`[Compare changes](${compareUrl})`);
-  }
-
   return sections.join('\n').trim();
 }
 
@@ -46,8 +41,12 @@ function groupByType(entries: ChangeEntry[]): Map<string, ChangeEntry[]> {
 
   for (const entry of entries) {
     const type = entry.commit.conventionalType ?? 'Changes';
-    if (!groups.has(type)) groups.set(type, []);
-    groups.get(type)!.push(entry);
+    const existing = groups.get(type);
+    if (existing) {
+      existing.push(entry);
+    } else {
+      groups.set(type, [entry]);
+    }
   }
 
   // Sort: known types first in conventional order, then unknown
@@ -55,8 +54,9 @@ function groupByType(entries: ChangeEntry[]): Map<string, ChangeEntry[]> {
   const knownOrder = ['feat', 'fix', 'refactor', 'perf', 'docs', 'test', 'chore', 'ci', 'style', 'build'];
 
   for (const type of knownOrder) {
-    if (groups.has(type)) {
-      ordered.set(type, groups.get(type)!);
+    const items = groups.get(type);
+    if (items) {
+      ordered.set(type, items);
       groups.delete(type);
     }
   }

@@ -12,7 +12,7 @@ export class AnthropicProvider implements LLMProvider {
   private logger: Logger;
 
   constructor(config: LLMConfig, logger: Logger) {
-    this.client = new Anthropic({ apiKey: config.apiKey });
+    this.client = new Anthropic({ apiKey: config.apiKey, timeout: 60_000 });
     this.config = config;
     this.logger = logger;
   }

@@ -29,7 +29,7 @@ async function run(): Promise<void> {
     const repository: RepositoryInfo = {
       owner,
       repo,
-      defaultBranch: 'main',
+      defaultBranch: github.context.payload.repository?.default_branch ?? 'main',
       url: `https://github.com/${owner}/${repo}`,
     };
 
@@ -62,4 +62,6 @@ async function run(): Promise<void> {
   }
 }
 
-run();
+run().catch((error) => {
+  core.setFailed(`Unhandled error: ${error instanceof Error ? error.message : String(error)}`);
+});

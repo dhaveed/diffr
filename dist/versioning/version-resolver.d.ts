@@ -4,6 +4,7 @@ export interface ResolveVersionOptions {
     explicitVersion?: string;
     prefix: string;
     initialVersion: string;
+    bumpHint?: BumpType;
 }
 export declare function resolveVersion(options: ResolveVersionOptions): VersionInfo;
 export declare function stripPrefix(tag: string, prefix: string): string;

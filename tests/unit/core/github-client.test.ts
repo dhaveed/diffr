@@ -25,6 +25,7 @@ vi.mock('@octokit/rest', () => ({
   Octokit: vi.fn().mockImplementation(() => ({
     repos: mockRepos,
     git: mockGit,
+    hook: { after: vi.fn() },
   })),
 }));
 

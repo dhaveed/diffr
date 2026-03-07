@@ -175,4 +175,71 @@ describe('collectChanges', () => {
     );
     expect(result.entries).toHaveLength(0);
   });
+
+  it('strips HTML tags from PR bodies without decoding tag-shaped entities', async () => {
+    const client = createMockGitHubClient({
+      listPullRequestsForCommit: vi.fn().mockResolvedValue([
+        {
+          ...MOCK_PRS[0],
+          body: '<p>Hello &amp; welcome</p><script>alert(1)</script>&lt;script&gt;encoded&lt;/script&gt;',
+        },
+      ]),
+    });
+
+    const result = await collectChanges(
+      client as never,
+      MOCK_REPO,
+      'HEAD',
+      { ...defaultFilters, skipBots: false },
+      logger,
+    );
+
+    const body = result.entries[0]?.pullRequest?.body;
+    expect(body).toContain('Hello & welcome');
+    expect(body).toContain('&lt;script&gt;encoded&lt;/script&gt;');
+    expect(body).not.toContain('alert(1)');
+    expect(body).not.toContain('<script>');
+  });
+
+  it('drops raw text blocks even with spaced closing tags', async () => {
+    const client = createMockGitHubClient({
+      listPullRequestsForCommit: vi.fn().mockResolvedValue([
+        {
+          ...MOCK_PRS[0],
+          body: '<script type="text/javascript">alert(1)</script ><p>safe</p><style>body{display:none}</style >',
+        },
+      ]),
+    });
+
+    const result = await collectChanges(
+      client as never,
+      MOCK_REPO,
+      'HEAD',
+      { ...defaultFilters, skipBots: false },
+      logger,
+    );
+
+    expect(result.entries[0]?.pullRequest?.body).toBe('safe');
+  });
+
+  it('decodes only safe text entities after stripping markup', async () => {
+    const client = createMockGitHubClient({
+      listPullRequestsForCommit: vi.fn().mockResolvedValue([
+        {
+          ...MOCK_PRS[0],
+          body: '<div>Tom &amp;amp; Jerry &quot;quote&quot; &#39;apostrophe&#39; &nbsp; test</div>',
+        },
+      ]),
+    });
+
+    const result = await collectChanges(
+      client as never,
+      MOCK_REPO,
+      'HEAD',
+      { ...defaultFilters, skipBots: false },
+      logger,
+    );
+
+    expect(result.entries[0]?.pullRequest?.body).toBe(`Tom &amp; Jerry "quote" 'apostrophe'   test`);
+  });
 });

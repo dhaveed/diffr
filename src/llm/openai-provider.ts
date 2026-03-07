@@ -12,7 +12,7 @@ export class OpenAIProvider implements LLMProvider {
   private logger: Logger;
 
   constructor(config: LLMConfig, logger: Logger) {
-    this.client = new OpenAI({ apiKey: config.apiKey });
+    this.client = new OpenAI({ apiKey: config.apiKey, timeout: 60_000 });
     this.config = config;
     this.logger = logger;
   }

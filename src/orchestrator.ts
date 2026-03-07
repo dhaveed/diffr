@@ -1,4 +1,4 @@
-import type { DiffrConfig, PipelineResult, RepositoryInfo } from './types.js';
+import type { BumpType, DiffrConfig, PipelineResult, RepositoryInfo } from './types.js';
 import { Logger } from './utils/logger.js';
 import { GitHubClient } from './core/github-client.js';
 import { collectChanges } from './core/change-collector.js';
@@ -45,17 +45,25 @@ export async function runPipeline(
   // 5. Generate impact summary
   const impactSummary = generateImpactSummary(analyzedEntries);
 
-  // 6. Resolve version
+  // 6. Compute bump hint from impact summary
+  const bumpHint: BumpType = impactSummary.hasBreakingChanges
+    ? 'major'
+    : analyzedEntries.some((e) => e.commit.conventionalType === 'feat')
+      ? 'minor'
+      : 'patch';
+
+  // 7. Resolve version
   logger.info('Resolving version...');
   const versionInfo = resolveVersion({
     lastTag: changeSet.baseRef,
     explicitVersion: config.explicitVersion,
     prefix: config.versionPrefix,
     initialVersion: config.initialVersion,
+    bumpHint,
   });
   logger.info(`Version resolved: ${versionInfo.version} (tag: ${versionInfo.tag})`);
 
-  // 7. Build release context
+  // 8. Build release context
   const releaseContext = buildReleaseContext(
     analyzedEntries,
     repository,
@@ -63,7 +71,7 @@ export async function runPipeline(
     versionInfo,
   );
 
-  // 8. Generate release notes (LLM with fallback)
+  // 9. Generate release notes (LLM with fallback)
   let llmBody: string;
   try {
     if (!config.llm.apiKey) {
@@ -78,14 +86,14 @@ export async function runPipeline(
     llmBody = generateFallbackNotes(analyzedEntries, repository, changeSet.baseRef, versionInfo.tag);
   }
 
-  // 9. Format release notes (impact header is deterministic, NOT LLM-generated)
+  // 10. Format release notes (impact header is deterministic, NOT LLM-generated)
   const impactHeader = formatImpactHeader(impactSummary, versionInfo.tag);
   const compareLink = config.notes.includeCompareLink
     ? formatCompareLink(repository, changeSet.baseRef, versionInfo.tag)
     : '';
   const releaseNotes = formatReleaseNotes(impactHeader, llmBody, compareLink);
 
-  // 10. Publish release
+  // 11. Publish release
   logger.info('Publishing release...');
   const release = await publishRelease(
     {
@@ -100,7 +108,7 @@ export async function runPipeline(
     logger,
   );
 
-  // 11. Return result
+  // 12. Return result
   return {
     success: true,
     release: release ?? undefined,

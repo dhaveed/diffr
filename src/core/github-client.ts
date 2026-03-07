@@ -57,6 +57,18 @@ export class GitHubClient {
     this.owner = owner;
     this.repo = repo;
     this.logger = logger;
+
+    this.octokit.hook.after('request', (response) => {
+      const remaining = response.headers['x-ratelimit-remaining'];
+      const limit = response.headers['x-ratelimit-limit'];
+      if (remaining !== undefined && Number(remaining) <= 10) {
+        const resetAt = response.headers['x-ratelimit-reset'];
+        const resetDate = resetAt ? new Date(Number(resetAt) * 1000).toISOString() : 'unknown';
+        this.logger.warn(
+          `GitHub API rate limit low: ${remaining}/${limit} remaining (resets at ${resetDate})`,
+        );
+      }
+    });
   }
 
   async getLatestRelease(): Promise<ReleaseData | null> {
@@ -87,7 +99,8 @@ export class GitHubClient {
         }),
       );
       return data.length > 0 ? data[0].name : null;
-    } catch {
+    } catch (error) {
+      this.logger.debug(`Failed to fetch latest tag: ${error instanceof Error ? error.message : String(error)}`);
       return null;
     }
   }
@@ -135,7 +148,8 @@ export class GitHubClient {
           merged_at: pr.merged_at ?? null,
           html_url: pr.html_url,
         }));
-    } catch {
+    } catch (error) {
+      this.logger.debug(`Failed to fetch PRs for commit ${sha}: ${error instanceof Error ? error.message : String(error)}`);
       return [];
     }
   }
@@ -166,7 +180,8 @@ export class GitHubClient {
         }),
       );
       return true;
-    } catch {
+    } catch (error) {
+      this.logger.debug(`Tag check failed for ${tag}: ${error instanceof Error ? error.message : String(error)}`);
       return false;
     }
   }

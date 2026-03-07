@@ -6,6 +6,7 @@ export interface ResolveVersionOptions {
   explicitVersion?: string;
   prefix: string;
   initialVersion: string;
+  bumpHint?: BumpType;
 }
 
 export function resolveVersion(options: ResolveVersionOptions): VersionInfo {
@@ -46,7 +47,7 @@ export function resolveVersion(options: ResolveVersionOptions): VersionInfo {
     throw new Error(`Cannot parse version from tag: ${lastTag}`);
   }
 
-  const bump: BumpType = 'patch';
+  const bump: BumpType = options.bumpHint ?? 'patch';
   const newVersion = incrementVersion(parsed.version, bump);
 
   return {

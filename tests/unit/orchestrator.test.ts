@@ -21,6 +21,7 @@ const mockOctokit = {
   git: {
     getRef: vi.fn(),
   },
+  hook: { after: vi.fn() },
 };
 
 vi.mock('@octokit/rest', () => ({
@@ -90,9 +91,9 @@ function setupHappyPath() {
   mockOctokit.repos.createRelease.mockResolvedValue({
     data: {
       id: 2,
-      tag_name: 'v1.0.1',
-      html_url: 'https://github.com/test-owner/test-repo/releases/tag/v1.0.1',
-      name: 'v1.0.1',
+      tag_name: 'v2.0.0',
+      html_url: 'https://github.com/test-owner/test-repo/releases/tag/v2.0.0',
+      name: 'v2.0.0',
       body: 'notes',
       draft: false,
       prerelease: false,
@@ -112,8 +113,8 @@ describe('runPipeline', () => {
 
     expect(result.success).toBe(true);
     expect(result.skipped).toBe(false);
-    expect(result.version).toBe('1.0.1');
-    expect(result.tag).toBe('v1.0.1');
+    expect(result.version).toBe('2.0.0');
+    expect(result.tag).toBe('v2.0.0');
     expect(result.releaseNotes).toContain("What's New");
     expect(result.release).toBeDefined();
   });
