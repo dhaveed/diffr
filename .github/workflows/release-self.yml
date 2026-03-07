@@ -16,8 +16,51 @@ jobs:
           fetch-depth: 0
 
       - uses: ./
+        id: diffr
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           llm-provider: openai
           llm-api-key: ${{ secrets.OPENAI_API_KEY }}
           dry-run: 'true'
+
+      - name: Validate outputs
+        run: |
+          echo "=== diffr dry-run output validation ==="
+
+          # Version must be valid semver
+          VERSION="${{ steps.diffr.outputs.version }}"
+          if [ -z "$VERSION" ]; then
+            echo "WARN: No version output (expected on first run with no tags)"
+          else
+            echo "Version: $VERSION"
+            if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+              echo "FAIL: Version '$VERSION' is not valid semver"
+              exit 1
+            fi
+          fi
+
+          # Tag must start with prefix
+          TAG="${{ steps.diffr.outputs.tag }}"
+          if [ -n "$TAG" ]; then
+            echo "Tag: $TAG"
+            if ! echo "$TAG" | grep -qE '^v[0-9]+'; then
+              echo "FAIL: Tag '$TAG' does not start with 'v'"
+              exit 1
+            fi
+          fi
+
+          # Dry-run must be true
+          DRY_RUN="${{ steps.diffr.outputs.dry-run }}"
+          if [ "$DRY_RUN" != "true" ]; then
+            echo "FAIL: Expected dry-run=true, got '$DRY_RUN'"
+            exit 1
+          fi
+
+          # Release notes must be non-empty (if there are changes)
+          NOTES="${{ steps.diffr.outputs.release-notes }}"
+          if [ -n "$VERSION" ] && [ -z "$NOTES" ]; then
+            echo "FAIL: Version was resolved but release notes are empty"
+            exit 1
+          fi
+
+          echo "=== All validations passed ==="

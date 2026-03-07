@@ -2,6 +2,21 @@ import type { GitHubClient } from './github-client.js';
 import type { ChangeEntry, ChangeSet, CommitInfo, FilterConfig, PullRequestInfo, RepositoryInfo } from '../types.js';
 import type { Logger } from '../utils/logger.js';
 
+/** Strip HTML tags from text, preserving readable content. */
+function stripHtml(text: string): string {
+  return text
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?(p|div|li|h[1-6]|tr|blockquote)[^>]*>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 const BOT_SUFFIXES = ['[bot]'];
 const KNOWN_BOTS = ['dependabot', 'renovate', 'github-actions'];
 const MAX_CONCURRENT_PR_FETCHES = 10;
@@ -55,7 +70,7 @@ export async function collectChanges(
         ? {
             number: pr.number,
             title: pr.title,
-            body: pr.body ?? '',
+            body: stripHtml(pr.body ?? ''),
             author: pr.user?.login ?? commitInfo.author,
             labels: pr.labels.map((l) => l.name ?? '').filter(Boolean),
             mergedAt: pr.merged_at ?? '',

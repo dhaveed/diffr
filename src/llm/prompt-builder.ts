@@ -90,8 +90,11 @@ export function buildUserPrompt(context: ReleaseContext): string {
 }
 
 export function estimateTokens(text: string): number {
-  // Rough estimate: ~4 chars per token for English
-  return Math.ceil(text.length / 4);
+  // Base estimate: ~3.3 chars per token for JSON-heavy content with URLs,
+  // code, and special characters (more conservative than the naive ~4).
+  // Apply a 10% safety margin so truncation triggers before we actually hit limits.
+  const base = Math.ceil(text.length / 3.3);
+  return Math.ceil(base * 1.1);
 }
 
 /** Priority score for importance-aware truncation. Higher = more important. */

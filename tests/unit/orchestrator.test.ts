@@ -21,6 +21,7 @@ const mockOctokit = {
   git: {
     getRef: vi.fn(),
   },
+  hook: { after: vi.fn() },
 };
 
 vi.mock('@octokit/rest', () => ({

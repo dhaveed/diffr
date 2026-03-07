@@ -155,9 +155,12 @@ describe('buildUserPrompt', () => {
 });
 
 describe('estimateTokens', () => {
-  it('estimates token count', () => {
+  it('estimates token count conservatively', () => {
     expect(estimateTokens('hello world')).toBeGreaterThan(0);
-    expect(estimateTokens('a'.repeat(400))).toBe(100);
+    // More conservative than naive 4 chars/token — should be higher than 100
+    const estimate = estimateTokens('a'.repeat(400));
+    expect(estimate).toBeGreaterThan(100);
+    expect(estimate).toBeLessThan(200);
   });
 });
 

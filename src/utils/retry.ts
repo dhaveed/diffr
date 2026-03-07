@@ -5,6 +5,18 @@ export interface RetryOptions {
   retryOn?: (error: unknown) => boolean;
 }
 
+function getRetryAfterMs(error: unknown): number | null {
+  const err = error as Record<string, unknown>;
+  const headers =
+    (err.headers as Record<string, string> | undefined) ??
+    ((err.response as Record<string, unknown> | undefined)?.headers as Record<string, string> | undefined);
+  if (!headers) return null;
+  const retryAfter = headers['retry-after'];
+  if (!retryAfter) return null;
+  const seconds = Number(retryAfter);
+  return !isNaN(seconds) && seconds > 0 ? seconds * 1000 : null;
+}
+
 const DEFAULT_OPTIONS: Required<RetryOptions> = {
   maxAttempts: 3,
   baseDelayMs: 1000,
@@ -68,7 +80,8 @@ export async function withRetry<T>(
       if (attempt === opts.maxAttempts - 1 || !opts.retryOn(error)) {
         throw error;
       }
-      const delay = jitteredDelay(opts.baseDelayMs, attempt, opts.maxDelayMs);
+      const retryAfter = getRetryAfterMs(error);
+      const delay = retryAfter ?? jitteredDelay(opts.baseDelayMs, attempt, opts.maxDelayMs);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }

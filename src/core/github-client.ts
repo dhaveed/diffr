@@ -57,6 +57,18 @@ export class GitHubClient {
     this.owner = owner;
     this.repo = repo;
     this.logger = logger;
+
+    this.octokit.hook.after('request', (response) => {
+      const remaining = response.headers['x-ratelimit-remaining'];
+      const limit = response.headers['x-ratelimit-limit'];
+      if (remaining !== undefined && Number(remaining) <= 10) {
+        const resetAt = response.headers['x-ratelimit-reset'];
+        const resetDate = resetAt ? new Date(Number(resetAt) * 1000).toISOString() : 'unknown';
+        this.logger.warn(
+          `GitHub API rate limit low: ${remaining}/${limit} remaining (resets at ${resetDate})`,
+        );
+      }
+    });
   }
 
   async getLatestRelease(): Promise<ReleaseData | null> {

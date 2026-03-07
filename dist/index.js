@@ -53335,6 +53335,18 @@ const dist_src_Octokit = Octokit.plugin(requestLog, legacyRestEndpointMethods, p
 
 
 ;// CONCATENATED MODULE: ./src/utils/retry.ts
+function getRetryAfterMs(error) {
+    const err = error;
+    const headers = err.headers ??
+        err.response?.headers;
+    if (!headers)
+        return null;
+    const retryAfter = headers['retry-after'];
+    if (!retryAfter)
+        return null;
+    const seconds = Number(retryAfter);
+    return !isNaN(seconds) && seconds > 0 ? seconds * 1000 : null;
+}
 const DEFAULT_OPTIONS = {
     maxAttempts: 3,
     baseDelayMs: 1000,
@@ -53390,7 +53402,8 @@ async function withRetry(fn, options) {
             if (attempt === opts.maxAttempts - 1 || !opts.retryOn(error)) {
                 throw error;
             }
-            const delay = jitteredDelay(opts.baseDelayMs, attempt, opts.maxDelayMs);
+            const retryAfter = getRetryAfterMs(error);
+            const delay = retryAfter ?? jitteredDelay(opts.baseDelayMs, attempt, opts.maxDelayMs);
             await new Promise((resolve) => setTimeout(resolve, delay));
         }
     }
@@ -53421,6 +53434,15 @@ class GitHubClient {
         this.owner = owner;
         this.repo = repo;
         this.logger = logger;
+        this.octokit.hook.after('request', (response) => {
+            const remaining = response.headers['x-ratelimit-remaining'];
+            const limit = response.headers['x-ratelimit-limit'];
+            if (remaining !== undefined && Number(remaining) <= 10) {
+                const resetAt = response.headers['x-ratelimit-reset'];
+                const resetDate = resetAt ? new Date(Number(resetAt) * 1000).toISOString() : 'unknown';
+                this.logger.warn(`GitHub API rate limit low: ${remaining}/${limit} remaining (resets at ${resetDate})`);
+            }
+        });
     }
     async getLatestRelease() {
         try {
@@ -53541,6 +53563,20 @@ class GitHubClient {
 }
 
 ;// CONCATENATED MODULE: ./src/core/change-collector.ts
+/** Strip HTML tags from text, preserving readable content. */
+function stripHtml(text) {
+    return text
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/?(p|div|li|h[1-6]|tr|blockquote)[^>]*>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
 const BOT_SUFFIXES = ['[bot]'];
 const KNOWN_BOTS = ['dependabot', 'renovate', 'github-actions'];
 const MAX_CONCURRENT_PR_FETCHES = 10;
@@ -53576,7 +53612,7 @@ async function collectChanges(githubClient, repository, headRef, filters, logger
                 ? {
                     number: pr.number,
                     title: pr.title,
-                    body: pr.body ?? '',
+                    body: stripHtml(pr.body ?? ''),
                     author: pr.user?.login ?? commitInfo.author,
                     labels: pr.labels.map((l) => l.name ?? '').filter(Boolean),
                     mergedAt: pr.merged_at ?? '',
@@ -61623,8 +61659,11 @@ function buildUserPrompt(context) {
     return JSON.stringify(payload, null, 2);
 }
 function estimateTokens(text) {
-    // Rough estimate: ~4 chars per token for English
-    return Math.ceil(text.length / 4);
+    // Base estimate: ~3.3 chars per token for JSON-heavy content with URLs,
+    // code, and special characters (more conservative than the naive ~4).
+    // Apply a 10% safety margin so truncation triggers before we actually hit limits.
+    const base = Math.ceil(text.length / 3.3);
+    return Math.ceil(base * 1.1);
 }
 /** Priority score for importance-aware truncation. Higher = more important. */
 function entryPriority(entry) {
