@@ -4,17 +4,25 @@ import type { Logger } from '../utils/logger.js';
 
 /** Strip HTML tags from text, preserving readable content. */
 function stripHtml(text: string): string {
-  return text
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/?(p|div|li|h[1-6]|tr|blockquote)[^>]*>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  return (
+    text
+      // 1. Decode entities first so encoded tags like &lt;script&gt; become real tags
+      .replace(/&#39;/g, "'")
+      .replace(/&quot;/g, '"')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      // 2. Convert block-level and line-break tags to newlines
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/?(p|div|li|h[1-6]|tr|blockquote)[^>]*>/gi, '\n')
+      // 3. Strip all remaining tags (including any that were previously encoded)
+      .replace(/<[^>]+>/g, '')
+      // 4. Decode &amp; last to avoid double-unescaping
+      .replace(/&amp;/g, '&')
+      // 5. Final safety pass — catch any tags that survived entity decoding
+      .replace(/<[^>]*>/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+  );
 }
 
 const BOT_SUFFIXES = ['[bot]'];

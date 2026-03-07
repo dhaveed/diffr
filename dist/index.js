@@ -53565,17 +53565,23 @@ class GitHubClient {
 ;// CONCATENATED MODULE: ./src/core/change-collector.ts
 /** Strip HTML tags from text, preserving readable content. */
 function stripHtml(text) {
-    return text
-        .replace(/<br\s*\/?>/gi, '\n')
-        .replace(/<\/?(p|div|li|h[1-6]|tr|blockquote)[^>]*>/gi, '\n')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&amp;/g, '&')
+    return (text
+        // 1. Decode entities first so encoded tags like &lt;script&gt; become real tags
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"')
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
+        // 2. Convert block-level and line-break tags to newlines
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/?(p|div|li|h[1-6]|tr|blockquote)[^>]*>/gi, '\n')
+        // 3. Strip all remaining tags (including any that were previously encoded)
+        .replace(/<[^>]+>/g, '')
+        // 4. Decode &amp; last to avoid double-unescaping
+        .replace(/&amp;/g, '&')
+        // 5. Final safety pass — catch any tags that survived entity decoding
+        .replace(/<[^>]*>/g, '')
         .replace(/\n{3,}/g, '\n\n')
-        .trim();
+        .trim());
 }
 const BOT_SUFFIXES = ['[bot]'];
 const KNOWN_BOTS = ['dependabot', 'renovate', 'github-actions'];
